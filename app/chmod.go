@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func Chmod(strordir string) error {
+func Chmod(stringordir string, num os.FileMode) error {
 	// Return new reader with buffer of default size (4096 bytes)
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Do you want to change permissions to 755? [y/n]")
@@ -15,7 +15,7 @@ func Chmod(strordir string) error {
 	// Read string
 	text, _ := reader.ReadString('\n')
 	if text == "y" {
-		err := os.Chmod(dir, 0755)
+		err := os.Chmod(dir, num)
 		if err != nil {
 			return errors.New("Couldn't chmod dir")
 		}
