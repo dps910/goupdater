@@ -13,11 +13,13 @@ import (
 )
 
 var (
-	s = make([]string, 0)
-	r io.Reader
+	s  = make([]string, 0)
+	r  io.Reader
+	dl = "/dl/"
 )
 
 // https://golangcode.com/download-a-file-with-progress/
+
 // Counter implements the "io.Writer". Counter counts number of bytes written to it
 type Counter struct {
 	Total uint64
@@ -33,6 +35,7 @@ func (c *Counter) Write(p []byte) (int, error) {
 	return l, nil
 }
 
+// Get returns HTTP response and error if there is an error
 func Get(s string) (resp *http.Response, err error) {
 	resp, err = http.Get(s)
 	if err != nil {
@@ -59,7 +62,7 @@ func filter(s []string, filt func(string) bool) (r []string) {
 	return
 }
 
-// Parse HTML
+// ParseHTML parses the HTML using tokenizer
 func ParseHTML() []string {
 	// Create tokenizer for io.Reader
 	tokenizer := html.NewTokenizer(getgo())
@@ -85,7 +88,9 @@ func ParseHTML() []string {
 						// filt := filter(emptySlice, goversion)
 						// return filt
 						switch {
-						case strings.Contains(i.Val, "go1.5.3"):
+
+						// Check that the go version exists
+						case strings.Contains(i.Val, "go1.15.3"):
 							url := fmt.Sprintf("https://golang.org%s", i.Val)
 							s = append(s, url)
 						}
@@ -96,6 +101,7 @@ func ParseHTML() []string {
 	}
 }
 
+// Separate url so that it is just "go1.5.3" etc
 func Separate(s string, sep string) (err error) {
 	// Split URL and then parse it so that it gets the filename
 	filename := strings.Split(s, sep)[1]
@@ -127,16 +133,29 @@ func Separate(s string, sep string) (err error) {
 	return nil
 }
 
+// Platforms for Linux/MacOS/Windows
 func Platforms() {
-	linuxamd64 := s[5]
-
-	switch {
-	case runtime.GOOS == "linux":
-		x := Separate(linuxamd64, "/dl/")
-		fmt.Println(x)
-		// architecture, _ := exec.Command("uname", "-m").Output()
-		// out := string(architecture)
-		// if out == "x86_64" {
-		// }
+	// Windows
+	switch os := runtime.GOOS; os {
+	case "windows":
+		if runtime.GOARCH == "amd64" {
+			Separate(s[13], dl)
+		} else {
+			Separate(s[11], dl)
+		}
+	case "darwin":
+		if runtime.GOARCH == "amd64" {
+			Separate(s[5], dl)
+		}
+	case "linux":
+		if runtime.GOARCH == "amd64" {
+			Separate(s[2], dl)
+		} else if runtime.GOARCH == "386" {
+			Separate(s[7], dl)
+		} else if runtime.GOARCH == "arm64" {
+			Separate(s[9], dl)
+		} else {
+			Separate(s[10], dl)
+		}
 	}
 }
