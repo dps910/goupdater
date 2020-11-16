@@ -22,7 +22,7 @@ func init() {
 }
 
 // Install golang to directory
-func Install(dir string, r io.Reader) error {
+func Install(dir string) error {
 	// Check that tar file exists
 
 	info, err := os.Stat(dir)
@@ -70,7 +70,15 @@ func Install(dir string, r io.Reader) error {
 		fmt.Println("Directory does exist")
 
 		// If go directory does exist, then we extract tar.gz file to /tmp temporarily and then move it
-		readGzip, err := gzip.NewReader(r)
+
+		// Call tar func
+		c := make(chan string)
+		Tar(c)
+
+		t := <-c
+
+		e, _ := os.Open(t)
+		readGzip, err := gzip.NewReader(e)
 		if err != nil {
 			return errors.New("Couldn't read file")
 		}
